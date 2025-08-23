@@ -1,0 +1,23 @@
+@url=http://localhost:3000/v1
+
+###
+GET {{url}}/health
+
+###
+POST {{url}}/posts
+Content-Type: application/json
+
+{
+  "title": "Teste 2",
+  "content": "Teste 2",
+  "tags": ["teste1, teste2"]
+}
+
+###
+GET {{url}}/posts/2
+
+###
+GET {{url}}/users/1
+
+###
+GET {{url}}/users/feed

@@ -1,0 +1,10 @@
+tmp_dir = "bin"
+
+[build]
+  cmd = "go build -o ./bin/main ./cmd/api"
+  bin = "./bin/main"
+  delay = 1000
+  exclude_dir = ["vendor", "tmp", "testdata"]
+
+[env]
+  LOAD_ENV_FILE = "true"
