@@ -2,23 +2,29 @@ package main
 
 import (
 	"go-social/internal/store"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 )
 
 type application struct {
 	config config
 	store  store.Storage
+	logger *zap.SugaredLogger
 }
 
 type config struct {
 	addr string
 	db   dbConfig
 	env  string
+	mail mailConfig
+}
+
+type mailConfig struct {
+	exp time.Duration
 }
 
 type dbConfig struct {
@@ -57,6 +63,8 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/users", func(r chi.Router) {
+			r.Put("/activate/{token}", app.activateUserHandler)
+
 			r.Post("/", app.createPostHandler)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.userContextMiddleware)
@@ -69,6 +77,11 @@ func (app *application) mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Get("/feed", app.getUserFeedHandler)
 			})
+		})
+
+		// Public routes
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", app.registerUserHandler)
 		})
 	})
 
@@ -84,7 +97,7 @@ func (app *application) run(router http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server has started at %s", app.config.addr)
+	app.logger.Infow("server has started", "addr", app.config.addr, "env", app.config.env)
 
 	return srv.ListenAndServe()
 }

@@ -21,3 +21,16 @@ GET {{url}}/users/1
 
 ###
 GET {{url}}/users/feed
+
+###
+POST {{url}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "nenaporto",
+  "email": "nena@gmail.com",
+  "password": "122@233"
+}
+
+###
+PUT {{url}}/users/activate/45b10a6b-0d7c-4336-b802-ef4a983a3667
