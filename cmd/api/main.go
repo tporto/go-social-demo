@@ -3,6 +3,7 @@ package main
 import (
 	"go-social/internal/db"
 	"go-social/internal/env"
+	"go-social/internal/mailer"
 	"go-social/internal/store"
 	"log"
 	"time"
@@ -14,7 +15,8 @@ const version = "1.0.0"
 
 func main() {
 	cfg := config{
-		addr: env.GetString("PORT", ":8080"),
+		addr:        env.GetString("PORT", ":8080"),
+		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		db: dbConfig{
 			addr:        env.GetString("DB_ADDR", "host=localhost port=5432 user=postgres password=postgres dbname=social sslmode=disable"),
 			maxOpenConn: env.GetInt("DB_MAX_OPEN_CONN", 30),
@@ -23,7 +25,14 @@ func main() {
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // 3 days
+			exp:       time.Hour * 24 * 3, // 3 days
+			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
+			mailTrap: mailTrapConfig{
+				apiKey: env.GetString("MAILTRAP_API_KEY", ""),
+			},
 		},
 	}
 
@@ -39,12 +48,16 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
+	// Mailer
+	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	store := store.NewStorage(db)
 
 	app := application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()
