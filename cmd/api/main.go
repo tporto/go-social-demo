@@ -26,7 +26,7 @@ func main() {
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
 			exp:       time.Hour * 24 * 3, // 3 days
-			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+			fromEmail: env.GetString("FROM_EMAIL", ""),
 			sendGrid: sendGridConfig{
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
 			},
@@ -49,7 +49,7 @@ func main() {
 	logger.Info("database connection pool established")
 
 	// Mailer
-	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+	mailer, _ := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
 
 	store := store.NewStorage(db)
 

@@ -49,7 +49,7 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 	message.SetHeader("Subject", subject.String())
 	message.AddAlternative("text/html", body.String())
 
-	dialer := gomail.NewDialer("live.smtp.mailtrap.io", 587, "api", m.apiKey)
+	dialer := gomail.NewDialer("sandbox.smtp.mailtrap.io", 587, "cce6b465e9a5b9", "d1551326dfac2f")
 
 	if err := dialer.DialAndSend(message); err != nil {
 		return -1, err
