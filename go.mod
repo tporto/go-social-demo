@@ -8,7 +8,10 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
-require gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+require (
+	github.com/go-chi/cors v1.2.2 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+)
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
