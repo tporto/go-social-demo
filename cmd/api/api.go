@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-social/internal/auth"
 	"go-social/internal/mailer"
 	"go-social/internal/store"
 	"net/http"
@@ -13,10 +14,11 @@ import (
 )
 
 type application struct {
-	config config
-	store  store.Storage
-	logger *zap.SugaredLogger
-	mailer mailer.Client
+	config        config
+	store         store.Storage
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 type config struct {
@@ -25,6 +27,23 @@ type config struct {
 	env         string
 	mail        mailConfig
 	frontendURL string
+	auth        authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+	token tokenConfig
+}
+
+type tokenConfig struct {
+	secret string
+	exp    time.Duration
+	iss    string
+}
+
+type basicConfig struct {
+	username string
+	password string
 }
 
 type mailConfig struct {

@@ -84,7 +84,7 @@ func (repo *UserStore) GetByID(ctx context.Context, id int64) (*User, error) {
 	query := `
 		SELECT id, username, email, password, created_at
 		FROM users
-		WHERE id = $1
+		WHERE id = $1 AND is_active = true
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -101,6 +101,36 @@ func (repo *UserStore) GetByID(ctx context.Context, id int64) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (repo *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id, username, email, password, created_at
+		FROM users
+		WHERE email = $1 AND is_active = true
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var user User
+	err := repo.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
 			return nil, ErrNotFound
 		default:
 			return nil, err

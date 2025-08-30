@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-social/internal/auth"
 	"go-social/internal/db"
 	"go-social/internal/env"
 	"go-social/internal/mailer"
@@ -34,6 +35,17 @@ func main() {
 				apiKey: env.GetString("MAILTRAP_API_KEY", ""),
 			},
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				username: env.GetString("AUTH_BASIC_USER", "admin"),
+				password: env.GetString("AUTH_BASIC_PASS", "admin"),
+			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "test"),
+				exp:    time.Hour * 24 * 3,
+				iss:    "gophersocial",
+			},
+		},
 	}
 
 	// Logger
@@ -50,14 +62,17 @@ func main() {
 
 	// Mailer
 	mailer, _ := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
-
+	// AuthJWT
+	jwtAuth := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+	// Repository
 	store := store.NewStorage(db)
 
 	app := application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: jwtAuth,
 	}
 
 	mux := app.mount()
