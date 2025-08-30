@@ -6,9 +6,11 @@ import (
 	"go-social/internal/env"
 	"go-social/internal/mailer"
 	"go-social/internal/store"
+	"go-social/internal/store/cache"
 	"log"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
 
@@ -46,6 +48,12 @@ func main() {
 				iss:    "gophersocial",
 			},
 		},
+		redisCfg: redisConfig{
+			addr:    env.GetString("REDIS_ADDR", "localhost:6379"),
+			pw:      env.GetString("REDIS_PW", ""),
+			db:      env.GetInt("REDIS_DB", 0),
+			enabled: env.GetBool("REDIS_ENABLED", false),
+		},
 	}
 
 	// Logger
@@ -60,12 +68,22 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
+	// Cache
+	var rdb *redis.Client
+	if cfg.redisCfg.enabled {
+		rdb = cache.NewRedisClient(cfg.redisCfg.addr, cfg.redisCfg.pw, cfg.redisCfg.db)
+		logger.Info("redis cache connection established")
+
+		defer rdb.Close()
+	}
+
 	// Mailer
 	mailer, _ := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
 	// AuthJWT
 	jwtAuth := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
 	// Repository
 	store := store.NewStorage(db)
+	cacheStorage := cache.NewRedisStorage(rdb)
 
 	app := application{
 		config:        cfg,
@@ -73,6 +91,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuth,
+		cacheStorage:  cacheStorage,
 	}
 
 	mux := app.mount()
