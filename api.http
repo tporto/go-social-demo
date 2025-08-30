@@ -1,15 +1,26 @@
 @url=http://localhost:3000/v1
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJnb3BoZXJzb2NpYWwiLCJleHAiOjE3NTY4NDE4NTUsImlhdCI6MTc1NjU4MjY1NSwiaXNzIjoiZ29waGVyc29jaWFsIiwibmJmIjoxNzU2NTgyNjU1LCJzdWIiOjM2fQ.h8mI8P0QgBWg38TGtol99NqXey8Zr5xCXtGaZfdQQCQ
+
+###
+POST {{url}}/auth/token
+Content-Type: application/json
+
+{
+  "email": "nena11@gmail.com",
+  "password": "122@233"
+}
 
 ###
 GET {{url}}/health
 
 ###
 POST {{url}}/posts
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "title": "Teste 2",
-  "content": "Teste 2",
+  "title": "Teste 3",
+  "content": "Teste 3",
   "tags": ["teste1, teste2"]
 }
 
